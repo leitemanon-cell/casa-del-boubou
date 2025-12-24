@@ -342,242 +342,280 @@
     </div>
 
     <script>
-        const puppies = ['Rocky', 'Arley', 'Avenger', 'Atica', 'After', 'Joy'];
+      <script>
+    const puppies = ['Rocky', 'Arley', 'Avenger', 'Atica', 'After', 'Joy'];
 
-        const pawSVG = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="paw-svg">
-            <circle cx="50" cy="70" r="18" fill="#8b6f47"/>
-            <circle cx="25" cy="30" r="12" fill="#8b6f47"/>
-            <circle cx="50" cy="15" r="12" fill="#8b6f47"/>
-            <circle cx="75" cy="30" r="12" fill="#8b6f47"/>
-        </svg>`;
+    const pawSVG = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="paw-svg">
+        <circle cx="50" cy="70" r="18" fill="#8b6f47"/>
+        <circle cx="25" cy="30" r="12" fill="#8b6f47"/>
+        <circle cx="50" cy="15" r="12" fill="#8b6f47"/>
+        <circle cx="75" cy="30" r="12" fill="#8b6f47"/>
+    </svg>`;
 
-        const albumData = {};
-        puppies.forEach(name => {
-            albumData[name] = [];
-        });
+    const albumData = {};
+    puppies.forEach(name => {
+        albumData[name] = [];
+    });
 
-        const giftVideos = {
-            'Rocky': 'https://drive.google.com/file/d/1l2XwmhkJuIRoDKgfnqhs83l8Jnz-SMVZ/preview',
-            'Arley': 'https://drive.google.com/file/d/1ZHFFylZ5aSvd3UufQIX0dhDUe1wI8VkA/preview',
-            'Avenger': 'https://drive.google.com/file/d/1SL0siEywn8p3AZdE0Ajig2mQe1gprhat/preview',
-            'Atica': 'https://drive.google.com/file/d/1ESWxsl7mbgL1W5ytoIXCTaFVzsDpu6be/preview',
-            'After': 'https://drive.google.com/file/d/1cbc6HmYP5xkp4Qtc_W4SwTMb3UbDPVsP/preview',
-            'Joy': 'https://drive.google.com/file/d/1u1SsrdyqgQBOl-zlkibsk3JPFUrkiUKn/preview'
-        };
+    // 🔹 Charge l’album sauvegardé au démarrage
+    function loadAlbum() {
+        try {
+            const saved = localStorage.getItem('casaDelBoubouAlbum');
+            if (!saved) return;
+            const parsed = JSON.parse(saved);
 
-        function createPuppiesGrid() {
-            const grid = document.getElementById('puppiesGrid');
-            grid.innerHTML = '';
-
-            puppies.forEach(puppyName => {
-                const card = document.createElement('div');
-                card.className = 'puppy-card';
-
-                const header = document.createElement('div');
-                header.className = 'card-header';
-                header.innerHTML = `${pawSVG}<div class="puppy-name">${puppyName}</div>`;
-
-                const body = document.createElement('div');
-                body.className = 'card-body';
-
-                header.addEventListener('click', function() {
-                    document.querySelectorAll('.card-body.active').forEach(el => {
-                        if (el !== body) el.classList.remove('active');
-                    });
-                    body.classList.toggle('active');
-                });
-
-                const mediaContainer = document.createElement('div');
-                mediaContainer.className = 'media-container';
-                mediaContainer.id = `media-container-${puppyName}`;
-
-                if (albumData[puppyName].length === 0) {
-                    const noMedia = document.createElement('div');
-                    noMedia.className = 'no-media-text';
-                    noMedia.textContent = 'Aucune photo ou vidéo pour le moment';
-                    noMedia.id = `no-media-${puppyName}`;
-                    mediaContainer.appendChild(noMedia);
-                } else {
-                    albumData[puppyName].forEach((media, idx) => {
-                        addMediaToDisplay(mediaContainer, puppyName, idx, media);
-                    });
+            puppies.forEach(name => {
+                if (Array.isArray(parsed[name])) {
+                    albumData[name] = parsed[name];
                 }
+            });
+        } catch (e) {
+            console.error('Erreur de chargement de l’album', e);
+        }
+    }
 
-                body.appendChild(mediaContainer);
+    // 🔹 Sauvegarde l’album après chaque modification
+    function saveAlbum() {
+        try {
+            const dataToSave = JSON.stringify(albumData);
+            localStorage.setItem('casaDelBoubouAlbum', dataToSave);
+        } catch (e) {
+            console.error('Erreur de sauvegarde de l’album', e);
+        }
+    }
 
-                const addBtn = document.createElement('button');
-                addBtn.className = 'add-button';
-                addBtn.textContent = '➕ Ajouter une photo ou vidéo';
-                addBtn.addEventListener('click', function() {
-                    document.getElementById(`file-input-${puppyName}`).click();
+    const giftVideos = {
+        'Rocky': 'https://drive.google.com/file/d/1l2XwmhkJuIRoDKgfnqhs83l8Jnz-SMVZ/preview',
+        'Arley': 'https://drive.google.com/file/d/1ZHFFylZ5aSvd3UufQIX0dhDUe1wI8VkA/preview',
+        'Avenger': 'https://drive.google.com/file/d/1SL0siEywn8p3AZdE0Ajig2mQe1gprhat/preview',
+        'Atica': 'https://drive.google.com/file/d/1ESWxsl7mbgL1W5ytoIXCTaFVzsDpu6be/preview',
+        'After': 'https://drive.google.com/file/d/1cbc6HmYP5xkp4Qtc_W4SwTMb3UbDPVsP/preview',
+        'Joy': 'https://drive.google.com/file/d/1u1SsrdyqgQBOl-zlkibsk3JPFUrkiUKn/preview'
+    };
+
+    function createPuppiesGrid() {
+        const grid = document.getElementById('puppiesGrid');
+        grid.innerHTML = '';
+
+        puppies.forEach(puppyName => {
+            const card = document.createElement('div');
+            card.className = 'puppy-card';
+
+            const header = document.createElement('div');
+            header.className = 'card-header';
+            header.innerHTML = `${pawSVG}<div class="puppy-name">${puppyName}</div>`;
+
+            const body = document.createElement('div');
+            body.className = 'card-body';
+
+            header.addEventListener('click', function() {
+                document.querySelectorAll('.card-body.active').forEach(el => {
+                    if (el !== body) el.classList.remove('active');
                 });
-                body.appendChild(addBtn);
-
-                const fileInput = document.createElement('input');
-                fileInput.type = 'file';
-                fileInput.id = `file-input-${puppyName}`;
-                fileInput.className = 'hidden-input';
-                fileInput.accept = 'image/*,video/*';
-                fileInput.addEventListener('change', (e) => handleFileUpload(e, puppyName));
-                body.appendChild(fileInput);
-
-                const giftBtn = document.createElement('button');
-                giftBtn.className = 'gift-button';
-                giftBtn.textContent = '🎁';
-                giftBtn.title = 'Vidéo surprise!';
-                giftBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    openGiftModal(puppyName);
-                });
-                header.appendChild(giftBtn);
-
-                card.appendChild(header);
-                card.appendChild(body);
-                grid.appendChild(card);
-            });
-        }
-
-        function addMediaToDisplay(container, puppyName, index, media) {
-            const mediaItem = document.createElement('div');
-            mediaItem.className = 'media-item has-content';
-            mediaItem.id = `media-${puppyName}-${index}`;
-
-            if (media.type === 'image') {
-                const img = document.createElement('img');
-                img.src = media.url;
-                img.alt = 'Photo';
-                mediaItem.appendChild(img);
-            } else {
-                const video = document.createElement('video');
-                video.src = media.url;
-                video.style.width = '100%';
-                video.style.height = '100%';
-                mediaItem.appendChild(video);
-            }
-
-            mediaItem.addEventListener('mouseenter', function() {
-                this.style.opacity = '0.8';
+                body.classList.toggle('active');
             });
 
-            mediaItem.addEventListener('mouseleave', function() {
-                this.style.opacity = '1';
-            });
-
-            container.appendChild(mediaItem);
-        }
-
-        function handleFileUpload(event, puppyName) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-                alert('Veuillez sélectionner une image ou une vidéo');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const mediaType = file.type.startsWith('image') ? 'image' : 'video';
-                const media = { type: mediaType, url: e.target.result };
-
-                const noMediaText = document.getElementById(`no-media-${puppyName}`);
-                if (noMediaText) noMediaText.remove();
-
-                albumData[puppyName].push(media);
-                const container = document.getElementById(`media-container-${puppyName}`);
-                addMediaToDisplay(container, puppyName, albumData[puppyName].length - 1, media);
-            };
-
-            reader.onerror = () => {
-                alert('Erreur lors de la lecture du fichier');
-            };
-
-            reader.readAsDataURL(file);
-            event.target.value = '';
-        }
-
-        function deleteMedia(puppyName, index) {
-            const mediaItem = document.getElementById(`media-${puppyName}-${index}`);
-            if (mediaItem) mediaItem.remove();
-
-            albumData[puppyName].splice(index, 1);
-
-            const container = document.getElementById(`media-container-${puppyName}`);
-            const items = container.querySelectorAll('.media-item');
-            items.forEach((item, idx) => {
-                item.id = `media-${puppyName}-${idx}`;
-            });
+            const mediaContainer = document.createElement('div');
+            mediaContainer.className = 'media-container';
+            mediaContainer.id = `media-container-${puppyName}`;
 
             if (albumData[puppyName].length === 0) {
                 const noMedia = document.createElement('div');
                 noMedia.className = 'no-media-text';
                 noMedia.textContent = 'Aucune photo ou vidéo pour le moment';
                 noMedia.id = `no-media-${puppyName}`;
-                container.appendChild(noMedia);
-            }
-        }
-
-        function shareAlbum() {
-            const pageUrl = window.location.href;
-            const shareText = `🐾 Découvrez La Casa Del Boubou - Album de nos adorables chiots!\n${pageUrl}`;
-
-            if (navigator.share) {
-                navigator.share({
-                    title: 'La Casa Del Boubou',
-                    text: shareText,
-                    url: pageUrl
-                }).catch(err => console.log('Partage annulé'));
-            } else if (navigator.clipboard) {
-                navigator.clipboard.writeText(shareText).then(() => {
-                    alert('✅ Lien copié!\n\nVous pouvez le partager avec vos amis et famille.');
-                }).catch(() => {
-                    alert('Lien à partager:\n' + pageUrl);
-                });
+                mediaContainer.appendChild(noMedia);
             } else {
-                alert('Lien à partager:\n' + pageUrl);
+                albumData[puppyName].forEach((media, idx) => {
+                    addMediaToDisplay(mediaContainer, puppyName, idx, media);
+                });
             }
+
+            body.appendChild(mediaContainer);
+
+            const addBtn = document.createElement('button');
+            addBtn.className = 'add-button';
+            addBtn.textContent = '➕ Ajouter une photo ou vidéo';
+            addBtn.addEventListener('click', function() {
+                document.getElementById(`file-input-${puppyName}`).click();
+            });
+            body.appendChild(addBtn);
+
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.id = `file-input-${puppyName}`;
+            fileInput.className = 'hidden-input';
+            fileInput.accept = 'image/*,video/*';
+            fileInput.addEventListener('change', (e) => handleFileUpload(e, puppyName));
+            body.appendChild(fileInput);
+
+            const giftBtn = document.createElement('button');
+            giftBtn.className = 'gift-button';
+            giftBtn.textContent = '🎁';
+            giftBtn.title = 'Vidéo surprise!';
+            giftBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                openGiftModal(puppyName);
+            });
+            header.appendChild(giftBtn);
+
+            card.appendChild(header);
+            card.appendChild(body);
+            grid.appendChild(card);
+        });
+    }
+
+    function addMediaToDisplay(container, puppyName, index, media) {
+        const mediaItem = document.createElement('div');
+        mediaItem.className = 'media-item has-content';
+        mediaItem.id = `media-${puppyName}-${index}`;
+
+        if (media.type === 'image') {
+            const img = document.createElement('img');
+            img.src = media.url;
+            img.alt = 'Photo';
+            mediaItem.appendChild(img);
+        } else {
+            const video = document.createElement('video');
+            video.src = media.url;
+            video.style.width = '100%';
+            video.style.height = '100%';
+            mediaItem.appendChild(video);
         }
 
-        document.addEventListener('click', function(e) {
-            if (e.target.textContent === '✕') {
-                const mediaItem = e.target.closest('.media-item');
-                if (mediaItem) {
-                    const id = mediaItem.id;
-                    const match = id.match(/media-(.+)-(\d+)/);
-                    if (match) {
-                        deleteMedia(match[1], parseInt(match[2]));
-                    }
+        mediaItem.addEventListener('mouseenter', function() {
+            this.style.opacity = '0.8';
+        });
+
+        mediaItem.addEventListener('mouseleave', function() {
+            this.style.opacity = '1';
+        });
+
+        container.appendChild(mediaItem);
+    }
+
+    function handleFileUpload(event, puppyName) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+            alert('Veuillez sélectionner une image ou une vidéo');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const mediaType = file.type.startsWith('image') ? 'image' : 'video';
+            const media = { type: mediaType, url: e.target.result };
+
+            const noMediaText = document.getElementById(`no-media-${puppyName}`);
+            if (noMediaText) noMediaText.remove();
+
+            albumData[puppyName].push(media);
+            const container = document.getElementById(`media-container-${puppyName}`);
+            addMediaToDisplay(container, puppyName, albumData[puppyName].length - 1, media);
+
+            // 🔹 Sauvegarde après ajout
+            saveAlbum();
+        };
+
+        reader.onerror = () => {
+            alert('Erreur lors de la lecture du fichier');
+        };
+
+        reader.readAsDataURL(file);
+        event.target.value = '';
+    }
+
+    function deleteMedia(puppyName, index) {
+        const mediaItem = document.getElementById(`media-${puppyName}-${index}`);
+        if (mediaItem) mediaItem.remove();
+
+        albumData[puppyName].splice(index, 1);
+
+        const container = document.getElementById(`media-container-${puppyName}`);
+        const items = container.querySelectorAll('.media-item');
+        items.forEach((item, idx) => {
+            item.id = `media-${puppyName}-${idx}`;
+        });
+
+        if (albumData[puppyName].length === 0) {
+            const noMedia = document.createElement('div');
+            noMedia.className = 'no-media-text';
+            noMedia.textContent = 'Aucune photo ou vidéo pour le moment';
+            noMedia.id = `no-media-${puppyName}`;
+            container.appendChild(noMedia);
+        }
+
+        // 🔹 Sauvegarde après suppression
+        saveAlbum();
+    }
+
+    function shareAlbum() {
+        const pageUrl = window.location.href;
+        const shareText = `🐾 Découvrez La Casa Del Boubou - Album de nos adorables chiots!\n${pageUrl}`;
+
+        if (navigator.share) {
+            navigator.share({
+                title: 'La Casa Del Boubou',
+                text: shareText,
+                url: pageUrl
+            }).catch(err => console.log('Partage annulé'));
+        } else if (navigator.clipboard) {
+            navigator.clipboard.writeText(shareText).then(() => {
+                alert('✅ Lien copié!\n\nVous pouvez le partager avec vos amis et famille.');
+            }).catch(() => {
+                alert('Lien à partager:\n' + pageUrl);
+            });
+        } else {
+            alert('Lien à partager:\n' + pageUrl);
+        }
+    }
+
+    document.addEventListener('click', function(e) {
+        if (e.target.textContent === '✕') {
+            const mediaItem = e.target.closest('.media-item');
+            if (mediaItem) {
+                const id = mediaItem.id;
+                const match = id.match(/media-(.+)-(\d+)/);
+                if (match) {
+                    deleteMedia(match[1], parseInt(match[2]));
                 }
             }
-        });
-
-        function openGiftModal(puppyName) {
-            const modal = document.getElementById('giftModal');
-            const giftIframe = document.getElementById('giftIframe');
-
-            if (giftVideos[puppyName]) {
-                giftIframe.src = giftVideos[puppyName];
-                modal.classList.add('active');
-            } else {
-                alert('📹 Vidéo surprise à venir pour ' + puppyName + '!');
-            }
         }
+    });
 
-        function closeGiftModal() {
-            const modal = document.getElementById('giftModal');
-            const giftIframe = document.getElementById('giftIframe');
-            modal.classList.remove('active');
-            giftIframe.src = '';
+    function openGiftModal(puppyName) {
+        const modal = document.getElementById('giftModal');
+        const giftIframe = document.getElementById('giftIframe');
+
+        if (giftVideos[puppyName]) {
+            giftIframe.src = giftVideos[puppyName];
+            modal.classList.add('active');
+        } else {
+            alert('📹 Vidéo surprise à venir pour ' + puppyName + '!');
         }
+    }
 
-        document.addEventListener('click', function(e) {
-            const modal = document.getElementById('giftModal');
-            if (e.target === modal) {
-                closeGiftModal();
-            }
-        });
+    function closeGiftModal() {
+        const modal = document.getElementById('giftModal');
+        const giftIframe = document.getElementById('giftIframe');
+        modal.classList.remove('active');
+        giftIframe.src = '';
+    }
 
-        createPuppiesGrid();
+    document.addEventListener('click', function(e) {
+        const modal = document.getElementById('giftModal');
+        if (e.target === modal) {
+            closeGiftModal();
+        }
+    });
+
+    // 🔹 Charge l’album puis construit la grille
+    loadAlbum();
+    createPuppiesGrid();
+</script>
+
     </script>
 </body>
 </html>
